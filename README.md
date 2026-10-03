@@ -48,7 +48,7 @@
 
 </div>
 
-<sub>Add your own screenshots to a `docs/` folder as `library.png` and `game.png`.</sub>
+
 
 ## 📥 Install
 

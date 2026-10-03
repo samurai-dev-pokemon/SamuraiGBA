@@ -126,4 +126,4 @@ Samurai GBA does **not** include any games or BIOS files. Only play games you ow
 
 The Samurai GBA front end is released under the [MIT License](LICENSE). The mGBA core keeps its own MPL-2.0 license.
 
-<div align="center"><sub>Made with ⚔️ and too much coffee</sub></div>
+<div align="center"><sub>Made by Samurai-dev and too much Passion</sub></div>

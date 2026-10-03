@@ -1,0 +1,238 @@
+<Window x:Class="SamuraiGBA.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Samurai GBA" Width="1240" Height="780" MinWidth="860" MinHeight="560"
+        Icon="Assets/logo.png"
+        Background="{StaticResource AppBg}" WindowStartupLocation="CenterScreen" AllowDrop="True"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True" FontFamily="Segoe UI Variable Text, Segoe UI">
+  <DockPanel>
+    <Menu x:Name="MainMenu" DockPanel.Dock="Top" Background="{StaticResource SideBg}" Padding="8,5">
+      <MenuItem Header="_File">
+        <MenuItem Header="_Open ROM…" Click="OpenRom_Click" InputGestureText="Ctrl+O"/>
+        <MenuItem Header="Add ROM _folder to library…" Click="AddFolder_Click"/>
+        <Separator/>
+        <MenuItem Header="_Back to library" Click="Back_Click" InputGestureText="Esc"/>
+        <MenuItem Header="E_xit" Click="Exit_Click"/>
+      </MenuItem>
+      <MenuItem Header="_Emulation">
+        <MenuItem Header="_Pause / Resume" Click="Pause_Click" InputGestureText="P"/>
+        <MenuItem Header="_Reset" Click="Reset_Click"/>
+        <Separator/>
+        <MenuItem Header="Save state" x:Name="SaveMenu"/>
+        <MenuItem Header="Load state" x:Name="LoadMenu"/>
+        <MenuItem Header="Fast-forward speed" x:Name="SpeedMenu"/>
+        <Separator/>
+        <MenuItem Header="Screenshot" Click="Shot_Click" InputGestureText="F12"/>
+      </MenuItem>
+      <MenuItem Header="_Video">
+        <MenuItem Header="Upscaling / filter" x:Name="FilterMenu"/>
+        <MenuItem Header="Integer scaling" x:Name="IntegerItem" IsCheckable="True" Click="Integer_Click"/>
+        <MenuItem Header="Fullscreen" Click="Fullscreen_Click" InputGestureText="F11"/>
+      </MenuItem>
+      <MenuItem Header="_Audio">
+        <MenuItem Header="Mute" x:Name="MuteItem" IsCheckable="True" Click="Mute_Click"/>
+        <MenuItem Header="Volume" x:Name="VolumeMenu"/>
+      </MenuItem>
+      <MenuItem Header="_Cheats" Click="Cheats_Click"/>
+      <MenuItem Header="C_ontrols" Click="Controls_Click"/>
+      <MenuItem Header="_Help">
+        <MenuItem Header="Hotkeys…" Click="Hotkeys_Click"/>
+        <MenuItem Header="About Samurai GBA" Click="About_Click"/>
+      </MenuItem>
+    </Menu>
+
+    <Grid>
+      <!-- ================= LIBRARY ================= -->
+      <Grid x:Name="LibraryView">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="236"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource SideBg}" BorderBrush="{StaticResource Edge}" BorderThickness="0,0,1,0">
+          <DockPanel Margin="18,24,18,16">
+            <TextBlock DockPanel.Dock="Bottom" Text="v1.0  ·  powered by mGBA" Foreground="#5A5A68" FontSize="11" Margin="6,10,0,0"/>
+            <Button DockPanel.Dock="Bottom" Style="{StaticResource Nav}" Click="Controls_Click">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="15" Width="28"/>
+                <TextBlock Text="Controls"/>
+              </StackPanel>
+            </Button>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="2,0,0,30">
+              <Image Source="Assets/logo.png" Width="52" Height="52" RenderOptions.BitmapScalingMode="HighQuality"/>
+              <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="SAMURAI" FontSize="21" FontWeight="ExtraBold" Foreground="White"/>
+                <TextBlock Text="GAME BOY ADVANCE" FontSize="9.5" FontWeight="SemiBold" Foreground="{StaticResource Gold}" Margin="1,0,0,0"/>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="BROWSE" FontSize="10.5" FontWeight="Bold" Foreground="#5A5A68" Margin="12,0,0,6"/>
+              <Border Background="#1E1017" CornerRadius="9" BorderBrush="#4A1623" BorderThickness="1" Margin="0,2">
+                <StackPanel Orientation="Horizontal" Margin="12,10">
+                  <TextBlock Text="&#xE7FC;" FontFamily="Segoe MDL2 Assets" FontSize="15" Width="28" Foreground="{StaticResource AccentHover}"/>
+                  <TextBlock Text="Library" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
+                </StackPanel>
+              </Border>
+              <TextBlock Text="MANAGE" FontSize="10.5" FontWeight="Bold" Foreground="#5A5A68" Margin="12,22,0,6"/>
+              <Button Style="{StaticResource Nav}" Click="AddFolder_Click">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="15" Width="28"/>
+                  <TextBlock Text="Add folder"/>
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource Nav}" Click="AddRom_Click">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="&#xE710;" FontFamily="Segoe MDL2 Assets" FontSize="15" Width="28"/>
+                  <TextBlock Text="Add ROM"/>
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource Nav}" Click="FetchCovers_Click">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="15" Width="28"/>
+                  <TextBlock Text="Refresh cover art"/>
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </DockPanel>
+        </Border>
+
+        <!-- main -->
+        <Grid Grid.Column="1">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <DockPanel Grid.Row="0" Margin="36,28,36,12">
+            <TextBox x:Name="SearchBox" DockPanel.Dock="Right" Style="{StaticResource Search}" Width="300" Tag="Search your games…"
+                     TextChanged="Search_Changed" VerticalAlignment="Center"/>
+            <StackPanel>
+              <TextBlock Text="Library" FontSize="32" FontWeight="Bold" Foreground="White"/>
+              <TextBlock x:Name="CountText" Text="0 games" Foreground="{StaticResource Muted}" FontSize="13" Margin="2,2,0,0"/>
+            </StackPanel>
+          </DockPanel>
+
+          <ListBox x:Name="GamesList" Grid.Row="1" Background="Transparent" BorderThickness="0"
+                   Padding="28,4,20,12" HorizontalContentAlignment="Stretch"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   MouseDoubleClick="Games_DoubleClick" SelectionMode="Single">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemContainerStyle>
+              <Style TargetType="ListBoxItem">
+                <Setter Property="Margin" Value="6"/>
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                      <Border x:Name="card" Background="{StaticResource Panel}" CornerRadius="16" Padding="10"
+                              BorderThickness="1.5" BorderBrush="Transparent" RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform><ScaleTransform x:Name="sc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+                        <ContentPresenter/>
+                      </Border>
+                      <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter TargetName="card" Property="Background" Value="{StaticResource Panel2}"/>
+                          <Setter TargetName="card" Property="BorderBrush" Value="#3A3A48"/>
+                          <Trigger.EnterActions>
+                            <BeginStoryboard>
+                              <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="sc" Storyboard.TargetProperty="ScaleX" To="1.04" Duration="0:0:0.12"/>
+                                <DoubleAnimation Storyboard.TargetName="sc" Storyboard.TargetProperty="ScaleY" To="1.04" Duration="0:0:0.12"/>
+                              </Storyboard>
+                            </BeginStoryboard>
+                          </Trigger.EnterActions>
+                          <Trigger.ExitActions>
+                            <BeginStoryboard>
+                              <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12"/>
+                                <DoubleAnimation Storyboard.TargetName="sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12"/>
+                              </Storyboard>
+                            </BeginStoryboard>
+                          </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                          <Setter TargetName="card" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                        </Trigger>
+                      </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Width="176">
+                  <Grid Height="176">
+                    <Border CornerRadius="12" Background="#101015"/>
+                    <Border CornerRadius="12">
+                      <Border.Background>
+                        <ImageBrush ImageSource="{Binding Cover}" Stretch="Uniform"/>
+                      </Border.Background>
+                    </Border>
+                    <Border x:Name="ov" CornerRadius="12" Opacity="0" IsHitTestVisible="False">
+                      <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                          <GradientStop Color="#00000000" Offset="0.35"/>
+                          <GradientStop Color="#D0000000" Offset="1"/>
+                        </LinearGradientBrush>
+                      </Border.Background>
+                      <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14" Padding="18,7"
+                              CornerRadius="16" Background="{StaticResource AccentGrad}">
+                        <TextBlock Text="▶  PLAY" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                      </Border>
+                    </Border>
+                  </Grid>
+                  <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="SemiBold" FontSize="13.5"
+                             Margin="3,10,3,0" TextWrapping="Wrap" MaxHeight="38" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="Game Boy Advance" Foreground="{StaticResource Muted}" FontSize="11" Margin="3,2,3,0"/>
+                </StackPanel>
+                <DataTemplate.Triggers>
+                  <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                    <Setter TargetName="ov" Property="Opacity" Value="1"/>
+                  </DataTrigger>
+                </DataTemplate.Triggers>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="▶   Play" Click="CtxPlay_Click"/>
+                <Separator/>
+                <MenuItem Header="Fetch cover art" Click="CtxFetch_Click"/>
+                <MenuItem Header="Set custom cover…" Click="CtxCover_Click"/>
+                <Separator/>
+                <MenuItem Header="Remove from library" Click="CtxRemove_Click"/>
+              </ContextMenu>
+            </ListBox.ContextMenu>
+          </ListBox>
+
+          <StackPanel x:Name="EmptyHint" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Image Source="Assets/logo.png" Width="120" Height="120" Opacity="0.35" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <TextBlock Text="Your library is empty" Foreground="White" FontSize="20" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" Margin="0,18,0,4"/>
+            <TextBlock Text="Add a folder of .gba ROMs, or drop a ROM onto this window." Foreground="{StaticResource Muted}"
+                       FontSize="13.5" HorizontalAlignment="Center"/>
+            <Button Content="＋  Add ROM folder" Click="AddFolder_Click" HorizontalAlignment="Center" Margin="0,22,0,0" Padding="22,11"/>
+          </StackPanel>
+
+          <Border Grid.Row="2" Background="#0B0B10" BorderBrush="{StaticResource Edge}" BorderThickness="0,1,0,0" Padding="36,8">
+            <TextBlock x:Name="StatusText" Foreground="{StaticResource Muted}" FontSize="12"/>
+          </Border>
+        </Grid>
+      </Grid>
+
+      <!-- ================= GAME ================= -->
+      <Grid x:Name="GameView" Background="Black" Visibility="Collapsed" Focusable="True" SizeChanged="GameView_SizeChanged">
+        <Image x:Name="Screen" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+               RenderOptions.EdgeMode="Aliased"/>
+        <Border x:Name="Toast" Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top"
+                Margin="18" Padding="16,9" Background="#E6121217" BorderBrush="{StaticResource Accent}"
+                BorderThickness="0,0,0,2" CornerRadius="9">
+          <TextBlock x:Name="ToastText" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+        </Border>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</Window>
